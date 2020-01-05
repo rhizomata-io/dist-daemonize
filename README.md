@@ -30,5 +30,5 @@ func main() {
 ```
 
 
-[Simple Sample](samples/simple/README.md)
-[Discovery Sample](samples/discovery/README.md)
+#1 [Simple Sample](tree/master/samples/simple)
+#2 [Discovery Sample](tree/master/samples/discovery)
