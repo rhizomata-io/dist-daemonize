@@ -18,7 +18,7 @@ type BuiltinService struct {
 func (service BuiltinService) health(context *gin.Context) {
 	checkFrom := context.GetHeader("Check-From")
 	fmt.Println("checkFrom : ", checkFrom)
-	context.Writer.WriteString("OK")
+	context.Writer.WriteString(service.kernel.ID())
 	context.Writer.Flush()
 }
 

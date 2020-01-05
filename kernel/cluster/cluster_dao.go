@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/rhizomata-io/dist-daemonize/kernel/kv"
@@ -77,7 +78,7 @@ func (dao *DAO) GetHeartbeats(handler func(id string, tm time.Time)) (err error)
 
 			tm, err2 := time.Parse(time.RFC3339, string(value))
 			if err2 != nil {
-				// log.Println("[ERROR] Parse member Heartbeat time :", err2)
+				log.Println("[ERROR] Parse member Heartbeat time :", err2)
 			} else {
 				handler(id, tm)
 			}

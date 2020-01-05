@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/rhizomata-io/dist-daemonize/api"
+	"github.com/rhizomata-io/dist-daemonize/discovery"
 	"github.com/rhizomata-io/dist-daemonize/kernel"
 	"github.com/rhizomata-io/dist-daemonize/kernel/config"
 	"github.com/rhizomata-io/dist-daemonize/kernel/job"
@@ -16,6 +17,7 @@ type Daemonizer struct {
 	runOptions *config.RunOptions
 	kernel     *kernel.Kernel
 	apiServer  *api.Server
+	discovery  *discovery.Discovery
 }
 
 // Daemonize creates new Daemonizer
@@ -43,6 +45,14 @@ func (daemonizer *Daemonizer) RegisterWorkerFactory(factory worker.Factory) {
 //SetJobOrganizer delegates kernel.Kernel.RegisterWorkerFactory
 func (daemonizer *Daemonizer) SetJobOrganizer(jobOrganizer job.Organizer) {
 	daemonizer.kernel.SetJobOrganizer(jobOrganizer)
+}
+
+//StartDiscovery : this method may be called only after Start
+func (daemonizer *Daemonizer) StartDiscovery() {
+	disc := discovery.New(daemonizer.kernel)
+	daemonizer.discovery = disc
+	discovery.SupportAPI(disc, daemonizer.apiServer)
+	disc.Start()
 }
 
 //Start start kernel and api server

@@ -13,6 +13,7 @@ func main() {
 		factory := new(SampleFactory)
 		daemonizer.RegisterWorkerFactory(factory)
 		daemonizer.Start()
+		daemonizer.StartDiscovery()
 
 		job1 := job.NewWithPIAndID("job1", "sample", `{"greet":"hello"}`)
 		daemonizer.AddJobIfNotExists(job1)

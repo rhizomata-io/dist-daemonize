@@ -12,9 +12,18 @@ type Client struct {
 }
 
 // CheckHealth ..
-func CheckHealth(daemonURL string) bool {
+func CheckHealth(daemonURL string) (remoteID string, err error) {
 	resp, err := http.Head(daemonURL + V1Path + HealthPath)
-	return (err == nil && resp.StatusCode == 200)
+	if err == nil && resp.StatusCode == 200 {
+		body := []byte{}
+		length, err2 := resp.Body.Read(body)
+		if err2 != nil {
+			err = err2
+		} else {
+			remoteID = string(body[:length])
+		}
+	}
+	return remoteID, err
 }
 
 // NewClient ..
@@ -24,7 +33,7 @@ func NewClient(daemonURL string) (client *Client) {
 }
 
 // Health check health
-func (client *Client) Health() bool {
+func (client *Client) Health() (remoteID string, err error) {
 	return CheckHealth(client.daemonURL)
 }
 

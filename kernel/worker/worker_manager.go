@@ -36,7 +36,17 @@ func (manager *Manager) LocalID() string { return manager.localid }
 // KV get etcd kv
 func (manager *Manager) KV() kv.KV { return manager.kv }
 
-// RegisterWorker ..
+// ContainsWorker if worker id is registered.
+func (manager *Manager) ContainsWorker(id string) bool {
+	return manager.workers[id] != nil
+}
+
+// GetWorker get worker for id
+func (manager *Manager) GetWorker(id string) Worker {
+	return manager.workers[id]
+}
+
+// registerWorker ..
 func (manager *Manager) registerWorker(id string, job *job.Job) error {
 	if manager.workers[id] != nil {
 		return errors.New("Worker[" + id + "] is already registered. If you want register new one, DeregisterWorker first")
@@ -53,7 +63,7 @@ func (manager *Manager) registerWorker(id string, job *job.Job) error {
 	return err
 }
 
-// DeregisterWorker ..
+// deregisterWorker ..
 func (manager *Manager) deregisterWorker(id string) error {
 	worker := manager.workers[id]
 	if worker == nil {
@@ -83,7 +93,7 @@ func (manager *Manager) Dispose() error {
 	return nil
 }
 
-// SetJobs ..
+// SetJobs ...
 func (manager *Manager) SetJobs(jobs map[string]*job.Job) {
 	log.Println("[WARN-WorkerManager] Set Jobs:", len(jobs))
 

@@ -30,6 +30,7 @@ type Kernel struct {
 	jobOrganizer      job.Organizer
 	workerManager     *worker.Manager
 	rootWorkerFactory *worker.AbstractWorkerFactory
+	onJobDistributed  func(membJobMap map[string][]string)
 }
 
 // New ..
@@ -52,10 +53,20 @@ func (kernel *Kernel) SetJobOrganizer(jobOrganizer job.Organizer) {
 	kernel.jobOrganizer = jobOrganizer
 }
 
+// SetOnJobDistributed : Set onJobDistributed event handler
+func (kernel *Kernel) SetOnJobDistributed(onJobDistributed func(membJobMap map[string][]string)) {
+	kernel.onJobDistributed = onJobDistributed
+}
+
 // SetHealthCheckDelegator ..
-func (kernel *Kernel) SetHealthCheckDelegator(healthCheckDelegator func(serviceUrl string) bool) {
+func (kernel *Kernel) SetHealthCheckDelegator(healthCheckDelegator func(serviceUrl string) (string, error)) {
 	kernel.GetClusterManager().SetHealthCheckDelegator(func(memb *cluster.Member) bool {
-		return healthCheckDelegator(memb.ServiceURL)
+		remoteID, err := healthCheckDelegator(memb.ServiceURL)
+		if err == nil && memb.ID == remoteID {
+			return true
+		}
+		log.Println("[WARN-HealthCheck] Member["+memb.Name+":"+memb.ID+"] is not healty ", remoteID)
+		return false
 	})
 }
 
@@ -208,6 +219,7 @@ func (kernel *Kernel) Stop() {
 	kernel.workerManager.Dispose()
 }
 
+//for leader only
 func (kernel *Kernel) distributeMemberJobs(allJobs map[string]job.Job, aliveMembers []string) {
 	membJobMap, err := kernel.jobManager.GetAllMemberJobIDs()
 
@@ -241,5 +253,9 @@ func (kernel *Kernel) distributeMemberJobs(allJobs map[string]job.Job, aliveMemb
 
 	for memb, jobs := range membJobMap {
 		kernel.jobManager.SetMemberJobIDs(memb, jobs)
+	}
+
+	if kernel.onJobDistributed != nil {
+		kernel.onJobDistributed(membJobMap)
 	}
 }
