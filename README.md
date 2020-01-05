@@ -30,5 +30,5 @@ func main() {
 ```
 
 
-* [Simple Sample](/rhizomata-io/dist-daemonize/tree/master/samples/simple)
-* [Discovery Sample](/rhizomata-io/dist-daemonize/tree/master/samples/discovery)
+* [Simple Sample](http://github.com/rhizomata-io/dist-daemonize/tree/master/samples/simple)
+* [Discovery Sample](http://github.com/rhizomata-io/dist-daemonize/tree/master/samples/discovery)
