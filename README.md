@@ -7,7 +7,7 @@ go get github.com/rhizomata-io/dist-daemonize/...
 ```
 
 
-```
+``` golang
 package main
 
 import (
@@ -30,5 +30,5 @@ func main() {
 ```
 
 
-#1 [Simple Sample](tree/master/samples/simple)
-#2 [Discovery Sample](tree/master/samples/discovery)
+* [Simple Sample](/rhizomata-io/dist-daemonize/tree/master/samples/simple)
+* [Discovery Sample](/rhizomata-io/dist-daemonize/tree/master/samples/discovery)
