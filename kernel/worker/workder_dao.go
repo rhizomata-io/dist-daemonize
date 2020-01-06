@@ -12,7 +12,8 @@ const (
 	kvDirClusters       = kvDirSys + "clstrs/"
 	kvPatternCheckpoint = kvDirClusters + "%s/checkpoint/%s"
 	kvPatternDataJobID  = kvDirClusters + "%s/data/%s/"
-	kvPatternData       = kvPatternDataJobID + "%s"
+	kvPatternDataTopic  = kvPatternDataJobID + "%s/"
+	kvPatternData       = kvPatternDataTopic + "%s"
 )
 
 // DAO kv store model for cluster
@@ -40,44 +41,62 @@ func (dao *DAO) GetCheckpoint(jobid string, checkpoint interface{}) error {
 }
 
 // PutData ..
-func (dao *DAO) PutData(jobid string, rowID string, data interface{}) error {
-	_, err := dao.kv.PutObject(fmt.Sprintf(kvPatternData, dao.cluster, jobid, rowID), data)
+func (dao *DAO) PutData(jobid string, topic string, rowID string, data string) error {
+	_, err := dao.kv.Put(fmt.Sprintf(kvPatternData, dao.cluster, jobid, topic, rowID), data)
 	if err != nil {
 		log.Println("[ERROR-WorkerDao] PutData", err)
 	}
 	return err
 }
 
+// PutObject ..
+func (dao *DAO) PutObject(jobid string, topic string, rowID string, data interface{}) error {
+	_, err := dao.kv.PutObject(fmt.Sprintf(kvPatternData, dao.cluster, jobid, topic, rowID), data)
+	if err != nil {
+		log.Println("[ERROR-WorkerDao] PutObject", err)
+	}
+	return err
+}
+
 // GetData ..
-func (dao *DAO) GetData(jobid string, rowID string, data interface{}) error {
-	err := dao.kv.GetObject(fmt.Sprintf(kvPatternData, dao.cluster, jobid, rowID), data)
+func (dao *DAO) GetData(jobid string, topic string, rowID string) (data []byte, err error) {
+	data, err = dao.kv.GetOne(fmt.Sprintf(kvPatternData, dao.cluster, jobid, topic, rowID))
 	if err != nil {
 		log.Println("[ERROR-WorkerDao] GetData ", err)
+	}
+	return data, err
+}
+
+// GetObject ..
+func (dao *DAO) GetObject(jobid string, topic string, rowID string, data interface{}) error {
+	err := dao.kv.GetObject(fmt.Sprintf(kvPatternData, dao.cluster, jobid, topic, rowID), data)
+	if err != nil {
+		log.Println("[ERROR-WorkerDao] GetObject ", err)
 	}
 	return err
 }
 
 // DeleteData ..
-func (dao *DAO) DeleteData(jobid string, rowID string) error {
-	_, err := dao.kv.DeleteOne(fmt.Sprintf(kvPatternData, dao.cluster, jobid, rowID))
+func (dao *DAO) DeleteData(jobid string, topic string, rowID string) error {
+	_, err := dao.kv.DeleteOne(fmt.Sprintf(kvPatternData, dao.cluster, jobid, topic, rowID))
 	if err != nil {
 		log.Println("[ERROR-WorkerDao] GetData ", err)
 	}
 	return err
 }
 
-// GetDataWithJobID ..
-func (dao *DAO) GetDataWithJobID(jobid string, handler func(key string, value []byte)) error {
-	err := dao.kv.GetWithPrefix(fmt.Sprintf(kvPatternDataJobID, dao.cluster, jobid), handler)
+// GetDataWithTopic ..
+func (dao *DAO) GetDataWithTopic(jobid string, topic string, handler func(key string, value []byte)) error {
+	err := dao.kv.GetWithPrefix(fmt.Sprintf(kvPatternDataTopic, dao.cluster, jobid, topic), handler)
 	if err != nil {
 		log.Println("[ERROR-WorkerDao] GetDataWithJobID ", err)
 	}
 	return err
 }
 
-// WatchDataWithJobID ..
-func (dao *DAO) WatchDataWithJobID(jobid string, handler func(key string, value []byte)) *kv.Watcher {
-	watcher := dao.kv.WatchWithPrefix(fmt.Sprintf(kvPatternDataJobID, dao.cluster, jobid), handler)
+// WatchDataWithTopic ..
+func (dao *DAO) WatchDataWithTopic(jobid string, topic string, handler func(key string, value []byte)) *kv.Watcher {
+	watcher := dao.kv.WatchWithPrefix(fmt.Sprintf(kvPatternDataTopic, dao.cluster, jobid, topic), handler)
 
 	return watcher
 }

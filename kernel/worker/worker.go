@@ -74,26 +74,36 @@ func (helper *Helper) GetCheckpoint(checkpoint interface{}) error {
 }
 
 // PutData ..
-func (helper *Helper) PutData(rowID string, data interface{}) error {
-	return helper.dao.PutData(helper.id, rowID, data)
+func (helper *Helper) PutData(topic string, rowID string, data string) error {
+	return helper.dao.PutData(helper.id, rowID, topic, data)
+}
+
+// PutObject ..
+func (helper *Helper) PutObject(topic string, rowID string, data interface{}) error {
+	return helper.dao.PutObject(helper.id, rowID, topic, data)
 }
 
 // GetData ..
-func (helper *Helper) GetData(rowID string, data interface{}) error {
-	return helper.dao.GetData(helper.id, rowID, data)
+func (helper *Helper) GetData(topic string, rowID string) (data []byte, err error) {
+	return helper.dao.GetData(helper.id, rowID, topic)
+}
+
+// GetObject ..
+func (helper *Helper) GetObject(topic string, rowID string, data interface{}) error {
+	return helper.dao.GetObject(helper.id, rowID, topic, data)
 }
 
 // GetDataList ..
-func (helper *Helper) GetDataList(handler func(key string, value []byte)) error {
-	return helper.dao.GetDataWithJobID(helper.id, handler)
+func (helper *Helper) GetDataList(topic string, handler func(key string, value []byte)) error {
+	return helper.dao.GetDataWithTopic(helper.id, topic, handler)
 }
 
 // WatchData ..
-func (helper *Helper) WatchData(handler func(key string, value []byte)) *kv.Watcher {
-	return helper.dao.WatchDataWithJobID(helper.id, handler)
+func (helper *Helper) WatchData(topic string, handler func(key string, value []byte)) *kv.Watcher {
+	return helper.dao.WatchDataWithTopic(helper.id, topic, handler)
 }
 
 // DeleteData ..
-func (helper *Helper) DeleteData(rowID string) error {
-	return helper.dao.DeleteData(helper.id, rowID)
+func (helper *Helper) DeleteData(topic string, rowID string) error {
+	return helper.dao.DeleteData(helper.id, topic, rowID)
 }
