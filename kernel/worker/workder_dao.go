@@ -74,3 +74,10 @@ func (dao *DAO) GetDataWithJobID(jobid string, handler func(key string, value []
 	}
 	return err
 }
+
+// WatchDataWithJobID ..
+func (dao *DAO) WatchDataWithJobID(jobid string, handler func(key string, value []byte)) *kv.Watcher {
+	watcher := dao.kv.WatchWithPrefix(fmt.Sprintf(kvPatternDataJobID, dao.cluster, jobid), handler)
+
+	return watcher
+}

@@ -83,6 +83,16 @@ func (helper *Helper) GetData(rowID string, data interface{}) error {
 	return helper.dao.GetData(helper.id, rowID, data)
 }
 
+// GetDataList ..
+func (helper *Helper) GetDataList(handler func(key string, value []byte)) error {
+	return helper.dao.GetDataWithJobID(helper.id, handler)
+}
+
+// WatchData ..
+func (helper *Helper) WatchData(handler func(key string, value []byte)) *kv.Watcher {
+	return helper.dao.WatchDataWithJobID(helper.id, handler)
+}
+
 // DeleteData ..
 func (helper *Helper) DeleteData(rowID string) error {
 	return helper.dao.DeleteData(helper.id, rowID)
