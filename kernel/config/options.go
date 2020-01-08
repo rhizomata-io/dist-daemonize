@@ -3,6 +3,9 @@ package config
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -42,17 +45,54 @@ func NewRunOptions() (runOptions *RunOptions) {
 	return runOptions
 }
 
+const (
+	_cluster                = "$DD-CLUSTER"
+	_name                   = "$DD-CLUSTER"
+	_exposedHost            = "$DD-EXPOSED-HOST"
+	_port                   = "$DD-PORT"
+	_dataDir                = "$DD-DATADIR"
+	_etcdUrls               = "$DD-ETCD-URLS"
+	_heartbeatInterval      = "$DD-HEARTBEAT-INT"
+	_checkHeartbeatInterval = "$DD-CHECK-HEARTBEAT-INT"
+	_aliveThreasholdSeconds = "$DD-ALIVE-THRESHOLD"
+)
+
+func parseString(envName string, argName string, usage string, defVal string) (valueRef *string) {
+	value := os.Getenv(envName)
+	if len(value) == 0 {
+		value = defVal
+	}
+	valueRef = flag.String(argName, value, usage)
+	return valueRef
+}
+
+func parseUint(envName string, argName string, usage string, defVal uint) (valueRef *uint) {
+	value := os.Getenv(envName)
+	var uintVal uint
+	if len(value) == 0 {
+		uintVal = defVal
+	} else {
+		val, err := strconv.ParseUint(value, 10, 32)
+		if err != nil {
+			log.Fatal("Cannot Parse env ", envName, "<-", value)
+		}
+		uintVal = uint(val)
+	}
+	valueRef = flag.Uint(argName, uintVal, usage)
+	return valueRef
+}
+
 // ParseRunOptions : parses flags
 func ParseRunOptions() (runOptions *RunOptions) {
-	clusterName := flag.String("cluster", "cluster1", "name of cluster")
-	name := flag.String("name", "bridge1", "name of etcd server")
-	host := flag.String("exposed-host", "0.0.0.0", "host name/IP")
-	port := flag.Uint("port", 12791, "liesten port for daemon")
-	dataDir := flag.String("data-dir", "daemon-data", "local data directory")
-	etcdUrls := flag.String("etcd-urls", "", "etcd-urls,...")
-	heartbeatInterval := flag.Uint("heartbeat-interval", 2, "heartbeat interval(seconds)")
-	checkHeartbeatInterval := flag.Uint("heartbeat-check-interval", 3, "heartbeat check interval(seconds)")
-	aliveThreasholdSeconds := flag.Uint("alive-threashold", 5, "alive threashold seconds")
+	clusterName := parseString(_cluster, "cluster", "name of cluster", "default")
+	name := parseString(_name, "name", "name of etcd server", "dd1")
+	host := parseString(_exposedHost, "exposed-host", "host name/IP", "0.0.0.0")
+	port := parseUint(_port, "port", "liesten port for daemon", 12791)
+	dataDir := parseString(_dataDir, "data-dir", "local data directory", "daemon-data")
+	etcdUrls := parseString(_etcdUrls, "etcd-urls", "etcd-urls,...", "http://127.0.0.1:2379")
+	heartbeatInterval := parseUint(_heartbeatInterval, "heartbeat-interval", "heartbeat interval(seconds)", 2)
+	checkHeartbeatInterval := parseUint(_checkHeartbeatInterval, "heartbeat-check-interval", "heartbeat check interval(seconds)", 3)
+	aliveThreasholdSeconds := parseUint(_aliveThreasholdSeconds, "alive-threashold", "alive threashold seconds", 5)
 
 	flag.Parse()
 

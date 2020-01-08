@@ -15,13 +15,7 @@ type Client struct {
 func CheckHealth(daemonURL string) (remoteID string, err error) {
 	resp, err := http.Head(daemonURL + V1Path + HealthPath)
 	if err == nil && resp.StatusCode == 200 {
-		body := []byte{}
-		length, err2 := resp.Body.Read(body)
-		if err2 != nil {
-			err = err2
-		} else {
-			remoteID = string(body[:length])
-		}
+		remoteID = resp.Header.Get(HeaderKernelID)
 	}
 	return remoteID, err
 }

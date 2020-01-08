@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rhizomata-io/dist-daemonize/kernel"
 	"github.com/rhizomata-io/dist-daemonize/kernel/job"
+	"github.com/rhizomata-io/dist-daemonize/protocol"
 )
 
 // BuiltinService ..
@@ -18,6 +19,8 @@ type BuiltinService struct {
 func (service BuiltinService) health(context *gin.Context) {
 	checkFrom := context.GetHeader("Check-From")
 	fmt.Println("checkFrom : ", checkFrom)
+	// fmt.Println("service.kernel.ID() : ", service.kernel.ID())
+	context.Header(protocol.HeaderKernelID, service.kernel.ID())
 	context.Writer.WriteString(service.kernel.ID())
 	context.Writer.Flush()
 }

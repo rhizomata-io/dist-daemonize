@@ -153,7 +153,6 @@ func (manager *Manager) checkLeader() {
 	}
 
 	oldLeader := manager.cluster.leader
-
 	if oldLeader != nil {
 		if oldLeader.ID == leaderID {
 			if oldLeader.IsAlive() {

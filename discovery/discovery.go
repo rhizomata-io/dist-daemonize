@@ -21,7 +21,7 @@ func New(kernel *kernel.Kernel) (discovery *Discovery) {
 	dao := &DAO{cluster: kernel.GetClusterManager().GetCluster().Name(), kv: kernel.GetKV()}
 	discovery = &Discovery{kernel: kernel, dao: dao, jobMembMap: map[string]*cluster.Member{}}
 
-	kernel.SetOnJobDistributed(discovery.OnJobDistributed)
+	kernel.AddOnJobDistributed(discovery.OnJobDistributed)
 	return discovery
 }
 

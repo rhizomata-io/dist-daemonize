@@ -30,7 +30,7 @@ type Kernel struct {
 	jobOrganizer      job.Organizer
 	workerManager     *worker.Manager
 	rootWorkerFactory *worker.AbstractWorkerFactory
-	onJobDistributed  func(membJobMap map[string][]string)
+	onJobDistributed  []func(membJobMap map[string][]string)
 }
 
 // New ..
@@ -40,6 +40,8 @@ func New(config *config.RunOptions) (kernel *Kernel, err error) {
 	workerFactory := worker.NewAbstractWorkerFactory("_root")
 	kernel.rootWorkerFactory = workerFactory
 	err = kernel.initialize(workerFactory)
+	kernel.onJobDistributed = []func(membJobMap map[string][]string){}
+
 	return kernel, err
 }
 
@@ -53,9 +55,9 @@ func (kernel *Kernel) SetJobOrganizer(jobOrganizer job.Organizer) {
 	kernel.jobOrganizer = jobOrganizer
 }
 
-// SetOnJobDistributed : Set onJobDistributed event handler
-func (kernel *Kernel) SetOnJobDistributed(onJobDistributed func(membJobMap map[string][]string)) {
-	kernel.onJobDistributed = onJobDistributed
+// AddOnJobDistributed : Add onJobDistributed event handler
+func (kernel *Kernel) AddOnJobDistributed(onJobDistributed func(membJobMap map[string][]string)) {
+	kernel.onJobDistributed = append(kernel.onJobDistributed, onJobDistributed)
 }
 
 // SetHealthCheckDelegator ..
@@ -65,7 +67,7 @@ func (kernel *Kernel) SetHealthCheckDelegator(healthCheckDelegator func(serviceU
 		if err == nil && memb.ID == remoteID {
 			return true
 		}
-		log.Println("[WARN-HealthCheck] Member["+memb.Name+":"+memb.ID+"] is not healty ", remoteID)
+		log.Println("[WARN-HealthCheck] Member["+memb.Name+":"+memb.ID+"] is not healthy. remote:", remoteID)
 		return false
 	})
 }
@@ -255,7 +257,7 @@ func (kernel *Kernel) distributeMemberJobs(allJobs map[string]job.Job, aliveMemb
 		kernel.jobManager.SetMemberJobIDs(memb, jobs)
 	}
 
-	if kernel.onJobDistributed != nil {
-		kernel.onJobDistributed(membJobMap)
+	for _, handler := range kernel.onJobDistributed {
+		handler(membJobMap)
 	}
 }
