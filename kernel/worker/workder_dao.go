@@ -51,10 +51,12 @@ func (dao *DAO) PutData(jobid string, topic string, rowID string, data string) e
 
 // PutObject ..
 func (dao *DAO) PutObject(jobid string, topic string, rowID string, data interface{}) error {
-	_, err := dao.kv.PutObject(fmt.Sprintf(kvPatternData, dao.cluster, jobid, topic, rowID), data)
+	key := fmt.Sprintf(kvPatternData, dao.cluster, jobid, topic, rowID)
+	_, err := dao.kv.PutObject(key, data)
 	if err != nil {
 		log.Println("[ERROR-WorkerDao] PutObject", err)
 	}
+	fmt.Println("&&&&& PutObject :: key=", key, ", data=", data)
 	return err
 }
 
@@ -96,7 +98,9 @@ func (dao *DAO) GetDataWithTopic(jobid string, topic string, handler func(key st
 
 // WatchDataWithTopic ..
 func (dao *DAO) WatchDataWithTopic(jobid string, topic string, handler func(key string, value []byte)) *kv.Watcher {
-	watcher := dao.kv.WatchWithPrefix(fmt.Sprintf(kvPatternDataTopic, dao.cluster, jobid, topic), handler)
+	key := fmt.Sprintf(kvPatternDataTopic, dao.cluster, jobid, topic)
+	watcher := dao.kv.WatchWithPrefix(key, handler)
+	fmt.Println("&&&&& WatchDataWithTopic :: key=", key)
 
 	return watcher
 }

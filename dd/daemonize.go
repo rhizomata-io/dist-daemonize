@@ -37,6 +37,11 @@ func Daemonize(runOptions *config.RunOptions) (daemonizer Daemonizer, err error)
 	return daemonizer, err
 }
 
+//GetKernel delegates kernel.Kernel.RegisterWorkerFactory
+func (daemonizer *Daemonizer) GetKernel() *kernel.Kernel {
+	return daemonizer.kernel
+}
+
 //RegisterWorkerFactory delegates kernel.Kernel.RegisterWorkerFactory
 func (daemonizer *Daemonizer) RegisterWorkerFactory(factory worker.Factory) {
 	daemonizer.kernel.RegisterWorkerFactory(factory)

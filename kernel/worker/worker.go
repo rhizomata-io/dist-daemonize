@@ -80,17 +80,17 @@ func (helper *Helper) PutData(topic string, rowID string, data string) error {
 
 // PutObject ..
 func (helper *Helper) PutObject(topic string, rowID string, data interface{}) error {
-	return helper.dao.PutObject(helper.id, rowID, topic, data)
+	return helper.dao.PutObject(helper.id, topic, rowID, data)
 }
 
 // GetData ..
 func (helper *Helper) GetData(topic string, rowID string) (data []byte, err error) {
-	return helper.dao.GetData(helper.id, rowID, topic)
+	return helper.dao.GetData(helper.id, topic, rowID)
 }
 
 // GetObject ..
 func (helper *Helper) GetObject(topic string, rowID string, data interface{}) error {
-	return helper.dao.GetObject(helper.id, rowID, topic, data)
+	return helper.dao.GetObject(helper.id, topic, rowID, data)
 }
 
 // GetDataList ..
