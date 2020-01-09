@@ -46,6 +46,12 @@ func (manager *Manager) GetWorker(id string) Worker {
 	return manager.workers[id]
 }
 
+// NewHelper ..
+func (manager *Manager) NewHelper(job *job.Job) (helper *Helper) {
+	helper = NewHelper(manager.cluster, job.ID, job, manager.kv)
+	return helper
+}
+
 // registerWorker ..
 func (manager *Manager) registerWorker(id string, job *job.Job) error {
 	if manager.workers[id] != nil {
