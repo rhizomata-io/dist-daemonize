@@ -151,6 +151,11 @@ func (kernel *Kernel) GetJobManager() *job.Manager {
 	return kernel.jobManager
 }
 
+// GetWorkerManager kernel.workerManager
+func (kernel *Kernel) GetWorkerManager() *worker.Manager {
+	return kernel.workerManager
+}
+
 // Start ..
 func (kernel *Kernel) Start() (err error) {
 	if kernel.jobOrganizer == nil {
