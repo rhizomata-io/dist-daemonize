@@ -22,7 +22,7 @@ type Watcher struct {
 	Key          string
 	watchChannel clientv3.WatchChan
 	running      bool
-	handler      func(key string, value []byte)
+	handler      func(eventType EventType, key string, value []byte)
 }
 
 func (watcher *Watcher) start() {
@@ -33,16 +33,18 @@ func (watcher *Watcher) start() {
 		kv := watchResp.Events[0].Kv
 		key := string(kv.Key)
 
-		fmt.Println("------- Watch :: watchResp=", watchResp)
-		fmt.Println("------- Watch :: watcher.Key=", watcher.Key)
-		fmt.Println("------- Watch :: key=", key)
-		fmt.Println("------- Watch :: IsCreate=", watchResp.Events[0].IsCreate())
-		fmt.Println("------- Watch :: IsModify=", watchResp.Events[0].IsModify())
+		// fmt.Println("------- Watch :: watchResp=", watchResp)
+		// fmt.Println("------- Watch :: watcher.Key=", watcher.Key)
+		// fmt.Println("------- Watch :: key=", key)
+		// fmt.Println("------- Watch :: IsCreate=", watchResp.Events[0].IsCreate())
+		// fmt.Println("------- Watch :: IsModify=", watchResp.Events[0].IsModify())
+		fmt.Println("------- Watch :: Type=", watchResp.Events[0].Type)
 
 		if len(key) > len(watcher.Key) {
 			key = key[len(watcher.Key):]
 		}
-		watcher.handler(key, kv.Value)
+		eventType := ParseType(int32(watchResp.Events[0].Type))
+		watcher.handler(eventType, key, kv.Value)
 	}
 }
 
@@ -198,7 +200,7 @@ func (etcd *EtcdKV) delete(ctx context.Context, key string, opts ...clientv3.OpO
 }
 
 // Watch ..
-func (etcd *EtcdKV) Watch(key string, handler func(key string, value []byte)) *Watcher {
+func (etcd *EtcdKV) Watch(key string, handler func(eventType EventType, key string, value []byte)) *Watcher {
 	watchChannel := etcd.client.Watch(context.Background(), key)
 
 	watcher := Watcher{Key: key, watchChannel: watchChannel, running: true, handler: handler}
@@ -209,7 +211,7 @@ func (etcd *EtcdKV) Watch(key string, handler func(key string, value []byte)) *W
 }
 
 // WatchWithPrefix ..
-func (etcd *EtcdKV) WatchWithPrefix(key string, handler func(key string, value []byte)) *Watcher {
+func (etcd *EtcdKV) WatchWithPrefix(key string, handler func(eventType EventType, key string, value []byte)) *Watcher {
 	watchChannel := etcd.client.Watch(context.Background(), key, clientv3.WithPrefix())
 
 	watcher := Watcher{Key: key, watchChannel: watchChannel, running: true, handler: handler}
