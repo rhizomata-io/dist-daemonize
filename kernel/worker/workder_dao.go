@@ -80,10 +80,22 @@ func (dao *DAO) GetObject(jobid string, topic string, rowID string, data interfa
 
 // DeleteData ..
 func (dao *DAO) DeleteData(jobid string, topic string, rowID string) error {
-	_, err := dao.kv.DeleteOne(fmt.Sprintf(kvPatternData, dao.cluster, jobid, topic, rowID))
+	key := fmt.Sprintf(kvPatternData, dao.cluster, jobid, topic, rowID)
+	_, err := dao.kv.DeleteOne(key)
 	if err != nil {
 		log.Println("[ERROR-WorkerDao] GetData ", err)
 	}
+	fmt.Println("^^^^^^ DeleteData :: key=", key)
+	return err
+}
+
+// DeleteDataFullPath ..
+func (dao *DAO) DeleteDataFullPath(key string) error {
+	_, err := dao.kv.DeleteOne(key)
+	if err != nil {
+		log.Println("[ERROR-WorkerDao] GetData ", err)
+	}
+	fmt.Println("^^^^^^ DeleteDataFullPath :: key=", key)
 	return err
 }
 

@@ -107,3 +107,8 @@ func (helper *Helper) WatchData(topic string, handler func(key string, value []b
 func (helper *Helper) DeleteData(topic string, rowID string) error {
 	return helper.dao.DeleteData(helper.id, topic, rowID)
 }
+
+// DeleteDataFullPath ..
+func (helper *Helper) DeleteDataFullPath(key string) error {
+	return helper.dao.DeleteDataFullPath(key)
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -30,7 +31,18 @@ func (watcher *Watcher) start() {
 			break
 		}
 		kv := watchResp.Events[0].Kv
-		watcher.handler(watcher.Key, kv.Value)
+		key := string(kv.Key)
+
+		fmt.Println("------- Watch :: watchResp=", watchResp)
+		fmt.Println("------- Watch :: watcher.Key=", watcher.Key)
+		fmt.Println("------- Watch :: key=", key)
+		fmt.Println("------- Watch :: IsCreate=", watchResp.Events[0].IsCreate())
+		fmt.Println("------- Watch :: IsModify=", watchResp.Events[0].IsModify())
+
+		if len(key) > len(watcher.Key) {
+			key = key[len(watcher.Key):]
+		}
+		watcher.handler(key, kv.Value)
 	}
 }
 
