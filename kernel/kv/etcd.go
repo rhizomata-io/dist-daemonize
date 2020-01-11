@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -22,29 +21,31 @@ type Watcher struct {
 	Key          string
 	watchChannel clientv3.WatchChan
 	running      bool
-	handler      func(eventType EventType, key string, value []byte)
+	handler      func(eventType EventType, fullPath string, rowID string, value []byte)
 }
 
 func (watcher *Watcher) start() {
 	for watchResp := range watcher.watchChannel {
 		if !watcher.running {
+			log.Printf("[WARN-Watcher] Watcher[%s] stop.\n", watcher.Key)
 			break
 		}
 		kv := watchResp.Events[0].Kv
 		key := string(kv.Key)
 
-		// fmt.Println("------- Watch :: watchResp=", watchResp)
+		// fmt.Println("------- Watch :: watcher.running=", watcher.running)
 		// fmt.Println("------- Watch :: watcher.Key=", watcher.Key)
 		// fmt.Println("------- Watch :: key=", key)
 		// fmt.Println("------- Watch :: IsCreate=", watchResp.Events[0].IsCreate())
 		// fmt.Println("------- Watch :: IsModify=", watchResp.Events[0].IsModify())
-		fmt.Println("------- Watch :: Type=", watchResp.Events[0].Type)
+		// fmt.Println("------- Watch :: Type=", watchResp.Events[0].Type)
 
+		rowID := ""
 		if len(key) > len(watcher.Key) {
-			key = key[len(watcher.Key):]
+			rowID = key[len(watcher.Key):]
 		}
 		eventType := ParseType(int32(watchResp.Events[0].Type))
-		watcher.handler(eventType, key, kv.Value)
+		watcher.handler(eventType, key, rowID, kv.Value)
 	}
 }
 
@@ -137,28 +138,46 @@ func (etcd *EtcdKV) GetObject(key string, obj interface{}) (err error) {
 }
 
 // GetWithPrefix ..
-func (etcd *EtcdKV) GetWithPrefix(key string, handler func(key string, value []byte)) (err error) {
+func (etcd *EtcdKV) GetWithPrefix(key string, handler DataHandler) (err error) {
 	r, err := etcd.get(context.Background(), key, clientv3.WithPrefix())
 	if err != nil {
 		return err
 	}
 
 	for _, item := range r.Kvs {
-		handler(string(item.Key), item.Value)
+		itemKey := string(item.Key)
+		rowID := ""
+		if len(itemKey) > len(key) {
+			rowID = itemKey[len(key):]
+		}
+
+		if !handler(itemKey, rowID, item.Value) {
+			log.Println("[WARN-KV] Stop GetWithPrefix")
+			break
+		}
 	}
 
 	return nil
 }
 
 // GetWithPrefixLimit ..
-func (etcd *EtcdKV) GetWithPrefixLimit(key string, limit int64, handler func(key string, value []byte)) (err error) {
+func (etcd *EtcdKV) GetWithPrefixLimit(key string, limit int64, handler DataHandler) (err error) {
 	r, err := etcd.get(context.Background(), key, clientv3.WithPrefix(), clientv3.WithLimit(limit))
 	if err != nil {
 		return err
 	}
 
 	for _, item := range r.Kvs {
-		handler(string(item.Key), item.Value)
+		itemKey := string(item.Key)
+		rowID := ""
+		if len(itemKey) > len(key) {
+			rowID = itemKey[len(key):]
+		}
+
+		if !handler(itemKey, rowID, item.Value) {
+			log.Println("[WARN-KV] Stop GetWithPrefixLimit")
+			break
+		}
 	}
 
 	return nil
@@ -200,7 +219,7 @@ func (etcd *EtcdKV) delete(ctx context.Context, key string, opts ...clientv3.OpO
 }
 
 // Watch ..
-func (etcd *EtcdKV) Watch(key string, handler func(eventType EventType, key string, value []byte)) *Watcher {
+func (etcd *EtcdKV) Watch(key string, handler func(eventType EventType, fullPath string, rowID string, value []byte)) *Watcher {
 	watchChannel := etcd.client.Watch(context.Background(), key)
 
 	watcher := Watcher{Key: key, watchChannel: watchChannel, running: true, handler: handler}
@@ -211,7 +230,7 @@ func (etcd *EtcdKV) Watch(key string, handler func(eventType EventType, key stri
 }
 
 // WatchWithPrefix ..
-func (etcd *EtcdKV) WatchWithPrefix(key string, handler func(eventType EventType, key string, value []byte)) *Watcher {
+func (etcd *EtcdKV) WatchWithPrefix(key string, handler func(eventType EventType, fullPath string, rowID string, value []byte)) *Watcher {
 	watchChannel := etcd.client.Watch(context.Background(), key, clientv3.WithPrefix())
 
 	watcher := Watcher{Key: key, watchChannel: watchChannel, running: true, handler: handler}

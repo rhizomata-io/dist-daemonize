@@ -21,24 +21,25 @@ type Factory interface {
 
 // Helper ..
 type Helper struct {
-	cluster string
-	id      string
-	job     *job.Job
-	kv      kv.KV
-	dao     *DAO
-	started bool
+	cluster  string
+	kernelid string
+	id       string
+	job      *job.Job
+	kv       kv.KV
+	dao      *DAO
+	started  bool
 }
 
 // NewHelper ..
-func NewHelper(cluster string, id string, job *job.Job, kv kv.KV) *Helper {
-	helper := Helper{cluster: cluster, id: id, job: job, kv: kv}
+func NewHelper(cluster string, kernelid string, id string, job *job.Job, kv kv.KV) *Helper {
+	helper := Helper{cluster: cluster, kernelid: kernelid, id: id, job: job, kv: kv}
 	helper.dao = &DAO{cluster: cluster, kv: kv}
 	return &helper
 }
 
 // CreateChildHelper ...
 func (helper *Helper) CreateChildHelper(subid string, job *job.Job) *Helper {
-	helper2 := Helper{cluster: helper.cluster, id: helper.id + "-" + subid, job: job, kv: helper.kv}
+	helper2 := Helper{cluster: helper.cluster, kernelid: helper.kernelid, id: helper.id + "-" + subid, job: job, kv: helper.kv}
 	helper2.dao = helper.dao
 	return &helper2
 }
@@ -46,6 +47,11 @@ func (helper *Helper) CreateChildHelper(subid string, job *job.Job) *Helper {
 // ID get worker's id
 func (helper *Helper) ID() string {
 	return helper.id
+}
+
+// KernelID get worker's KernelID
+func (helper *Helper) KernelID() string {
+	return helper.kernelid
 }
 
 // Job get worker's Job
@@ -75,12 +81,22 @@ func (helper *Helper) GetCheckpoint(checkpoint interface{}) error {
 
 // PutData ..
 func (helper *Helper) PutData(topic string, rowID string, data string) error {
-	return helper.dao.PutData(helper.id, rowID, topic, data)
+	return helper.dao.PutData(helper.id, topic, rowID, data)
+}
+
+// PutDataFullPath ..
+func (helper *Helper) PutDataFullPath(fullPath string, data string) error {
+	return helper.dao.PutDataFullPath(fullPath, data)
 }
 
 // PutObject ..
 func (helper *Helper) PutObject(topic string, rowID string, data interface{}) error {
 	return helper.dao.PutObject(helper.id, topic, rowID, data)
+}
+
+// PutObjectFullPath ..
+func (helper *Helper) PutObjectFullPath(fullPath string, data interface{}) error {
+	return helper.dao.PutObjectFullPath(fullPath, data)
 }
 
 // GetData ..
@@ -94,13 +110,20 @@ func (helper *Helper) GetObject(topic string, rowID string, data interface{}) er
 }
 
 // GetDataList ..
-func (helper *Helper) GetDataList(topic string, handler func(key string, value []byte)) error {
+func (helper *Helper) GetDataList(topic string, handler kv.DataHandler) error {
 	return helper.dao.GetDataWithTopic(helper.id, topic, handler)
 }
 
-// WatchData ..
-func (helper *Helper) WatchData(topic string, handler func(key string, value []byte)) *kv.Watcher {
+// WatchDataWithTopic ..
+func (helper *Helper) WatchDataWithTopic(topic string,
+	handler func(eventType kv.EventType, fullPath string, rowID string, value []byte)) *kv.Watcher {
 	return helper.dao.WatchDataWithTopic(helper.id, topic, handler)
+}
+
+// WatchData ..
+func (helper *Helper) WatchData(topic string, rowID string,
+	handler func(eventType kv.EventType, fullPath string, rowID string, value []byte)) *kv.Watcher {
+	return helper.dao.WatchData(helper.id, topic, rowID, handler)
 }
 
 // DeleteData ..

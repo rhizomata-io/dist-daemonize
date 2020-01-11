@@ -36,7 +36,7 @@ func (dao *DAO) PutDiscoveryInfo(membJobMap map[string][]string) (err error) {
 // WatchDiscoveryInfo ..
 func (dao *DAO) WatchDiscoveryInfo(handler func(membJobMap map[string][]string)) (watcher *kv.Watcher) {
 	watcher = dao.kv.Watch(fmt.Sprintf(kvDiscovery, dao.cluster),
-		func(key string, value []byte) {
+		func(eventType kv.EventType, fullPath string, rowID string, value []byte) {
 			membJobMap := make(map[string][]string)
 			err := json.Unmarshal(value, &membJobMap)
 			if err != nil {

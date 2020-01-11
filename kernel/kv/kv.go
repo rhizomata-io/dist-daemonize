@@ -27,6 +27,9 @@ func (x EventType) String() string {
 	return proto.EnumName(EventTypeNames, int32(x))
 }
 
+// DataHandler data handler for GetWithPrefix, GetWithPrefixLimit
+type DataHandler func(fullPath string, rowID string, value []byte) bool
+
 // KV ..
 type KV interface {
 	Close() error
@@ -34,10 +37,10 @@ type KV interface {
 	Put(key, val string) (revision int64, err error)
 	GetOne(key string) (value []byte, err error)
 	GetObject(key string, obj interface{}) (err error)
-	GetWithPrefix(key string, handler func(key string, value []byte)) (err error)
-	GetWithPrefixLimit(key string, limit int64, handler func(key string, value []byte)) (err error)
+	GetWithPrefix(key string, handler DataHandler) (err error)
+	GetWithPrefixLimit(key string, limit int64, handler DataHandler) (err error)
 	DeleteOne(key string) (deleted bool, err error)
 	DeleteWithPrefix(key string) (deleted int64, err error)
-	Watch(key string, handler func(eventType EventType, key string, value []byte)) *Watcher
-	WatchWithPrefix(key string, handler func(eventType EventType, key string, value []byte)) *Watcher
+	Watch(key string, handler func(eventType EventType, fullPath string, rowID string, value []byte)) *Watcher
+	WatchWithPrefix(key string, handler func(eventType EventType, fullPath string, rowID string, value []byte)) *Watcher
 }

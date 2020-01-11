@@ -72,16 +72,14 @@ func (dao *DAO) GetHeartbeats(handler func(id string, tm time.Time)) (err error)
 
 	// fmt.Println("*********** GetHeartbeats : dirPath:", dirPath)
 	err = dao.kv.GetWithPrefix(dirPath,
-		func(key string, value []byte) {
-			a := []rune(key)
-			id := string(a[len(dirPath):])
-
+		func(fullPath string, rowID string, value []byte) bool {
 			tm, err2 := time.Parse(time.RFC3339, string(value))
 			if err2 != nil {
 				log.Println("[ERROR] Parse member Heartbeat time :", err2)
 			} else {
-				handler(id, tm)
+				handler(rowID, tm)
 			}
+			return true
 		})
 	return err
 }

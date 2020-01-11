@@ -35,14 +35,15 @@ func (dao *DAO) GetAllMemberJobIDs() (membJobMap map[string][]string, err error)
 	membJobMap = make(map[string][]string)
 	dirPath := fmt.Sprintf(kvDirMemberJob, dao.cluster)
 	err = dao.kv.GetWithPrefix(dirPath,
-		func(key string, value []byte) {
+		func(fullPath string, rowID string, value []byte) bool {
 			jobIDs := []string{}
 			err := json.Unmarshal(value, &jobIDs)
 			if err != nil {
-				log.Println("[ERROR-JobDao] unmarshal member jobs ", key, err)
+				log.Println("[ERROR-JobDao] unmarshal member jobs ", fullPath, err)
 			}
-			membid := key[len(dirPath):]
+			membid := rowID
 			membJobMap[membid] = jobIDs
+			return true
 		})
 
 	return membJobMap, err
@@ -58,7 +59,7 @@ func (dao *DAO) PutMemberJobs(membID string, jobIDs []string) (err error) {
 func (dao *DAO) WatchMemberJobs(memberID string, handler func(jobIDs []string)) (watcher *kv.Watcher) {
 	dirPath := fmt.Sprintf(kvPatternMemberJob, dao.cluster, memberID)
 	watcher = dao.kv.Watch(dirPath,
-		func(key string, value []byte) {
+		func(eventType kv.EventType, fullPath string, rowID string, value []byte) {
 			jobIDs := []string{}
 			err := json.Unmarshal(value, &jobIDs)
 			if err != nil {
@@ -98,9 +99,10 @@ func (dao *DAO) GetAllJobIDs() (jobIDs []string, err error) {
 	jobIDs = []string{}
 	dirPath := fmt.Sprintf(kvPatternJobsDir, dao.cluster)
 	err = dao.kv.GetWithPrefix(dirPath,
-		func(key string, value []byte) {
-			jobid := key[len(dirPath):]
+		func(fullPath string, rowID string, value []byte) bool {
+			jobid := rowID
 			jobIDs = append(jobIDs, jobid)
+			return true
 		})
 
 	return jobIDs, err
@@ -111,10 +113,11 @@ func (dao *DAO) GetAllJobs() (jobs map[string]Job, err error) {
 	jobs = make(map[string]Job)
 	dirPath := fmt.Sprintf(kvPatternJobsDir, dao.cluster)
 	err = dao.kv.GetWithPrefix(dirPath,
-		func(key string, value []byte) {
-			jobid := key[len(dirPath):]
+		func(fullPath string, rowID string, value []byte) bool {
+			jobid := rowID
 			job := Job{ID: jobid, Data: value}
 			jobs[jobid] = job
+			return true
 		})
 
 	return jobs, err
@@ -124,8 +127,8 @@ func (dao *DAO) GetAllJobs() (jobs map[string]Job, err error) {
 func (dao *DAO) WatchJobs(handler func(jobid string, data []byte)) (watcher *kv.Watcher) {
 	dirPath := fmt.Sprintf(kvPatternJobsDir, dao.cluster)
 	watcher = dao.kv.WatchWithPrefix(dirPath,
-		func(key string, value []byte) {
-			jobid := key[len(dirPath):]
+		func(eventType kv.EventType, fullPath string, rowID string, value []byte) {
+			jobid := rowID
 			handler(jobid, value)
 		})
 	return watcher

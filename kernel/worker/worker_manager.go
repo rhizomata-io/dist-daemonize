@@ -48,7 +48,7 @@ func (manager *Manager) GetWorker(id string) Worker {
 
 // NewHelper ..
 func (manager *Manager) NewHelper(job *job.Job) (helper *Helper) {
-	helper = NewHelper(manager.cluster, job.ID, job, manager.kv)
+	helper = NewHelper(manager.cluster, manager.localid, job.ID, job, manager.kv)
 	return helper
 }
 
@@ -57,7 +57,7 @@ func (manager *Manager) registerWorker(id string, job *job.Job) error {
 	if manager.workers[id] != nil {
 		return errors.New("Worker[" + id + "] is already registered. If you want register new one, DeregisterWorker first")
 	}
-	helper := NewHelper(manager.cluster, id, job, manager.kv)
+	helper := manager.NewHelper(job)
 	worker, err := manager.workerFactory.NewWorker(helper)
 	if err != nil {
 		log.Println("[ERROR] Cannot create worker ", err)
@@ -115,7 +115,7 @@ func (manager *Manager) SetJobs(jobs map[string]*job.Job) {
 		if worker != nil {
 			delete(tempWorkers, id)
 		} else {
-			helper := NewHelper(manager.cluster, id, job, manager.kv)
+			helper := manager.NewHelper(job)
 			worker2, err := manager.workerFactory.NewWorker(helper)
 			if err != nil {
 				log.Println("[ERROR-WorkerMan] Cannot create worker ", err)
