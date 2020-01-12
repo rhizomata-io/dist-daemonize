@@ -194,13 +194,18 @@ func (etcd *EtcdKV) DeleteOne(key string) (deleted bool, err error) {
 	if err != nil {
 		return false, err
 	}
-
-	if r.Deleted != 1 {
-		log.Println("[WARN] One more keys were deleted ", r.Deleted)
-		return true, err
+	if r.Deleted == 1 {
+		log.Println("[INFO] KV item deleted for ", key)
+		return true, nil
 	}
-	log.Println("[INFO] KV item deleted for ", key)
-	return r.Deleted > 0, nil
+
+	if r.Deleted == 0 {
+		log.Println("[WARN] No KV Item were deleted for ", key)
+	}
+	if r.Deleted > 1 {
+		log.Printf("[WARN] %d KV Items for %s were deleted ", r.Deleted, key)
+	}
+	return false, err
 }
 
 // DeleteWithPrefix ..

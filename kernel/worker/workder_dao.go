@@ -104,7 +104,7 @@ func (dao *DAO) DeleteData(jobid string, topic string, rowID string) error {
 	key := fmt.Sprintf(kvPatternData, dao.cluster, jobid, topic, rowID)
 	_, err := dao.kv.DeleteOne(key)
 	if err != nil {
-		log.Println("[ERROR-WorkerDao] GetData ", err)
+		log.Println("[ERROR-WorkerDao] DeleteData ", err)
 	}
 	// fmt.Println("^^^^^^ DeleteData :: key=", key)
 	return err
