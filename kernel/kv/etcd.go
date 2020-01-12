@@ -46,6 +46,8 @@ func (watcher *Watcher) start() {
 		}
 		eventType := ParseType(int32(watchResp.Events[0].Type))
 		watcher.handler(eventType, key, rowID, kv.Value)
+		// etcd watch stream problem
+		time.Sleep(2 * time.Millisecond)
 	}
 }
 
