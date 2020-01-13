@@ -44,8 +44,7 @@ func NewWithPIAndID(jobID string, pi string, data string) Job {
 
 // NewWithID create new job with pi
 func NewWithID(jobID string, data []byte) Job {
-	uuid := uuid.New()
-	return Job{ID: uuid.String(), Data: data}
+	return Job{ID: jobID, Data: data}
 }
 
 // GetAsString Get data as string
