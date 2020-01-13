@@ -57,7 +57,8 @@ const (
 	_aliveThreasholdSeconds = "$DD-ALIVE-THRESHOLD"
 )
 
-func parseString(envName string, argName string, usage string, defVal string) (valueRef *string) {
+//GetString get command arg string or system env.
+func GetString(envName string, argName string, usage string, defVal string) (valueRef *string) {
 	value := os.Getenv(envName)
 	if len(value) == 0 {
 		value = defVal
@@ -66,7 +67,8 @@ func parseString(envName string, argName string, usage string, defVal string) (v
 	return valueRef
 }
 
-func parseUint(envName string, argName string, usage string, defVal uint) (valueRef *uint) {
+//GetUint get command arg uint or system env.
+func GetUint(envName string, argName string, usage string, defVal uint) (valueRef *uint) {
 	value := os.Getenv(envName)
 	var uintVal uint
 	if len(value) == 0 {
@@ -84,15 +86,15 @@ func parseUint(envName string, argName string, usage string, defVal uint) (value
 
 // ParseRunOptions : parses flags
 func ParseRunOptions() (runOptions *RunOptions) {
-	clusterName := parseString(_cluster, "cluster", "name of cluster", "default")
-	name := parseString(_name, "name", "name of etcd server", "dd1")
-	host := parseString(_exposedHost, "exposed-host", "host name/IP", "0.0.0.0")
-	port := parseUint(_port, "port", "liesten port for daemon", 12791)
-	dataDir := parseString(_dataDir, "data-dir", "local data directory", "daemon-data")
-	etcdUrls := parseString(_etcdUrls, "etcd-urls", "etcd-urls,...", "http://127.0.0.1:2379")
-	heartbeatInterval := parseUint(_heartbeatInterval, "heartbeat-interval", "heartbeat interval(seconds)", 2)
-	checkHeartbeatInterval := parseUint(_checkHeartbeatInterval, "heartbeat-check-interval", "heartbeat check interval(seconds)", 3)
-	aliveThreasholdSeconds := parseUint(_aliveThreasholdSeconds, "alive-threashold", "alive threashold seconds", 5)
+	clusterName := GetString(_cluster, "cluster", "name of cluster", "default")
+	name := GetString(_name, "name", "name of etcd server", "dd1")
+	host := GetString(_exposedHost, "exposed-host", "host name/IP", "0.0.0.0")
+	port := GetUint(_port, "port", "liesten port for daemon", 12791)
+	dataDir := GetString(_dataDir, "data-dir", "local data directory", "daemon-data")
+	etcdUrls := GetString(_etcdUrls, "etcd-urls", "etcd-urls,...", "http://127.0.0.1:2379")
+	heartbeatInterval := GetUint(_heartbeatInterval, "heartbeat-interval", "heartbeat interval(seconds)", 2)
+	checkHeartbeatInterval := GetUint(_checkHeartbeatInterval, "heartbeat-check-interval", "heartbeat check interval(seconds)", 3)
+	aliveThreasholdSeconds := GetUint(_aliveThreasholdSeconds, "alive-threashold", "alive threashold seconds", 5)
 
 	flag.Parse()
 
