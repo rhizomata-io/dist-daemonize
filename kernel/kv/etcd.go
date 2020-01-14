@@ -10,6 +10,9 @@ import (
 	"go.etcd.io/etcd/clientv3"
 )
 
+// WatchDataTimeOutMinutes WatchData timeout minutes
+var WatchDataTimeOutMinutes = 2
+
 // EtcdKV implements KV
 type EtcdKV struct {
 	etcdUrls []string
@@ -225,7 +228,11 @@ func (etcd *EtcdKV) delete(ctx context.Context, key string, opts ...clientv3.OpO
 
 // Watch ..
 func (etcd *EtcdKV) Watch(key string, handler func(eventType EventType, fullPath string, rowID string, value []byte)) *Watcher {
-	watchChannel := etcd.client.Watch(context.Background(), key)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(WatchDataTimeOutMinutes*time.Now().Minute()))
+	go func() {
+		cancel()
+	}()
+	watchChannel := etcd.client.Watch(ctx, key)
 
 	watcher := Watcher{Key: key, watchChannel: watchChannel, running: true, handler: handler}
 	go func() {
